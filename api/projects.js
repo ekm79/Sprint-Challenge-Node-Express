@@ -27,5 +27,53 @@ router.get('/:id', async (req, res) => {
     }
 })
 
+router.post('/', async (req, res) => {
+    const newProject = req.body;
+    try {
+        const project = await projectDb.insert(req.body);
+        res.status(201).json(project);
+        if (!name || !description) {
+            res.status(400).json({error: 'You must provide a name and description.'});
+            return;
+        }
+        if (newProject.name > 128) {
+            res.status(400).json({error: 'Name must be less than 128 characters.'});
+            return;
+        }
+    } catch(err) {
+        res.status(500).json({error: 'There was an error saving the project to the database.'})
+    }
+})
+
+router.put('/:id', async (req, res) => {
+    const updated = req.body;
+    try {
+        const updatedProject = await projectDb.update(updated);
+        res.status(200).json({updatedProject});
+        if (!name || !description) {
+            res.status(400).json({error: 'You must provide a name and description.'});
+            return;
+        }
+        if (newProject.name > 128) {
+            res.status(400).json({error: 'Name must be less than 128 characters.'});
+            return;
+        }
+    } catch(err) {
+        res.status(500).json({error: 'There was an error saving the changes to the database.'})
+    }
+})
+
+router.delete('/:id', async (req, res) => {
+    const id = req.params.id
+    try {
+        const deleted = await projectDb.remove(id);
+        res.status(200).json(deleted);
+        if(!id) {
+            res.status(404).json({error: 'The project with the specified ID does not exist'})
+        }
+    } catch(err) {
+        res.status(500).json({error: 'There was an error deleting the project.'})
+    }
+})
 
 module.exports = router;
