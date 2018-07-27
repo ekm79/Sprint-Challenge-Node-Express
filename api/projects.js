@@ -2,9 +2,6 @@ const express = require('express');
 const server = express();
 const projectDb = require('./../data/helpers/projectModel.js')
 const router = express.Router();
-//const bodyParser = require('body-parser');
-
-//server.use(bodyParser.json());
 
 
 
@@ -48,22 +45,7 @@ router.get('/:id/actions', async (req, res) => {
 router.post('/', async (req, res) => {
     const { name, description } = req.body;
     const newProject = req.body;
-    if (!name || !description) {
-        res.status(400).json({error: 'You must provide a name and description.'});
-        return;
-    }
-    if (newProject.name > 128) {
-        res.status(400).json({error: 'Name must be less than 128 characters.'});
-        return;
-    }
-    projectDb.insert(newProject)
-    .then(project => {
-        res.status(201).json(project);
-    })
-    .catch(err => {
-        res.status(500).json({error: 'There was an error saving the project to the database.'})
-    })
-    /*try {
+    try {
         const project = await projectDb.insert(newProject);
         res.status(201).json(project);
         if (!name || !description) {
@@ -76,7 +58,7 @@ router.post('/', async (req, res) => {
         }
     } catch(err) {
         res.status(500).json({error: 'There was an error saving the project to the database.'})
-    }*/
+    }
 })
 
 router.put('/:id', async (req, res) => {

@@ -30,9 +30,9 @@ router.get('/:id', async (req, res) => {
 })
 
 router.post('/', (req, res) => {
-    const { project_id, description } = req.body;
+    const { project_id, description, notes } = req.body;
     const newAction = req.body;
-    if (!project_id || !description) {
+    if (!project_id || !description || notes) {
         res.status(400).json({error: 'You must provide a name and description.'});
         return;
     }
