@@ -2,8 +2,11 @@ const express = require('express');
 const server = express();
 const projectDb = require('./../data/helpers/projectModel.js')
 const router = express.Router();
+//const bodyParser = require('body-parser');
 
-server.use(express.json());
+//server.use(bodyParser.json());
+
+
 
 router.get('/', async (req, res) => {
     try {
@@ -21,16 +24,47 @@ router.get('/:id', async (req, res) => {
         res.status(200).json(projects);
         if (!id) {
             res.status(404).json({error: 'The project with the specified id does not exist.'})
+            return;
         }
     } catch(err) {
         res.status(500).json({error: 'The project information could not be retrieved.'})
     }
 })
 
-router.post('/', async (req, res) => {
-    const newProject = req.body;
+router.get('/:id/actions', async (req, res) => {
+    const id = req.params.id;
     try {
-        const project = await projectDb.insert(req.body);
+        const project = await projectDb.get(id);
+        res.status(200).json(project.actions)
+        if (!id) {
+            res.status(404).json({error: 'The project with the specified id does not exist.'})
+            return;
+        }
+    } catch(err) {
+        res.status(500).json({error: 'The project actions could not be retrieved'})
+    }
+})
+
+router.post('/', async (req, res) => {
+    const { name, description } = req.body;
+    const newProject = req.body;
+    if (!name || !description) {
+        res.status(400).json({error: 'You must provide a name and description.'});
+        return;
+    }
+    if (newProject.name > 128) {
+        res.status(400).json({error: 'Name must be less than 128 characters.'});
+        return;
+    }
+    projectDb.insert(newProject)
+    .then(project => {
+        res.status(201).json(project);
+    })
+    .catch(err => {
+        res.status(500).json({error: 'There was an error saving the project to the database.'})
+    })
+    /*try {
+        const project = await projectDb.insert(newProject);
         res.status(201).json(project);
         if (!name || !description) {
             res.status(400).json({error: 'You must provide a name and description.'});
@@ -42,13 +76,14 @@ router.post('/', async (req, res) => {
         }
     } catch(err) {
         res.status(500).json({error: 'There was an error saving the project to the database.'})
-    }
+    }*/
 })
 
 router.put('/:id', async (req, res) => {
+    const id = req.params.id;
     const updated = req.body;
     try {
-        const updatedProject = await projectDb.update(updated);
+        const updatedProject = await projectDb.update(id, updated);
         res.status(200).json({updatedProject});
         if (!name || !description) {
             res.status(400).json({error: 'You must provide a name and description.'});
@@ -69,7 +104,8 @@ router.delete('/:id', async (req, res) => {
         const deleted = await projectDb.remove(id);
         res.status(200).json(deleted);
         if(!id) {
-            res.status(404).json({error: 'The project with the specified ID does not exist'})
+            res.status(404).json({error: 'The project with the specified ID does not exist'});
+            return;
         }
     } catch(err) {
         res.status(500).json({error: 'There was an error deleting the project.'})
